@@ -3,6 +3,7 @@
   "name": "endorsementletter",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-13",
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
@@ -12,9 +13,6 @@
   "vars": {
     "CORS_ORIGIN": "*"
   }
-  // "compatibility_flags": [
-  //   "nodejs_compat"
-  // ],
   // "vars": {
   //   "MY_VAR": "my-variable"
   // },

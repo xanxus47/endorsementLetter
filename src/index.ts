@@ -43,6 +43,9 @@ function dbError(c: Context<AppEnv>, error: unknown) {
   if (/invalid input syntax for type uuid/i.test(message)) {
     return c.json({ error: 'Letter not found' }, 404)
   }
+  if (/ENDORSEMENT_DATABASE_URL/i.test(message)) {
+    return c.json({ error: 'Database is not configured on this server' }, 500)
+  }
   console.error(error)
   return c.json({ error: 'Database error' }, 500)
 }
@@ -256,6 +259,10 @@ app.openapi(downloadRoute, async (c) => {
     return dbError(c, error)
   }
 })
+
+app.get('/api/health', (c) =>
+  c.json({ ok: true, database: Boolean(c.env.ENDORSEMENT_DATABASE_URL) }),
+)
 
 app.get('/', (c) => {
   if (c.env.ASSETS) {

@@ -1,4 +1,6 @@
-import { neon, type NeonQueryFunction } from '@neondatabase/serverless'
+import { neon, neonConfig, type NeonQueryFunction } from '@neondatabase/serverless'
+
+neonConfig.poolQueryViaFetch = true
 import type { Endorsement, EndorsementInput, Item, Section } from './schemas'
 
 export type Sql = NeonQueryFunction<false, false>
