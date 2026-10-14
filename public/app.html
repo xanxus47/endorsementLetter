@@ -1002,7 +1002,10 @@ document.addEventListener('keydown', e => {
 })
 
 /* ── init ──────────────────────────────────── */
-loadLetters()
+loadLetters().then(() => {
+  const editId = new URLSearchParams(location.search).get('edit')
+  if (editId) openEditModal(editId)
+})
 </script>
 </body>
 </html>

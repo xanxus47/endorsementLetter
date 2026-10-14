@@ -3,7 +3,7 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
 import type { Context } from 'hono'
 import { cors } from 'hono/cors'
 import { loadLogos, pdfFilename, renderLetterPdf } from './letter-pdf'
-import { renderFormPage, renderHomePage, renderNotFound, renderPreviewPage } from './pages'
+import { renderNotFound, renderPreviewPage } from './pages'
 import {
   DeleteResponseSchema,
   EndorsementInputSchema,
@@ -21,7 +21,6 @@ import {
   updateLetter,
   type Sql,
 } from './db'
-import { blankTemplate } from './seed'
 
 type AppEnv = {
   Bindings: {
@@ -258,16 +257,19 @@ app.openapi(downloadRoute, async (c) => {
   }
 })
 
-app.get('/', async (c) => {
-  try {
-    return c.html(renderHomePage(await listLetters(sqlFrom(c))))
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Database error'
-    return c.html(renderNotFound(), 500, { 'X-Error': message })
+app.get('/', (c) => {
+  if (c.env.ASSETS) {
+    return c.env.ASSETS.fetch(new Request(new URL('/app.html', c.req.url), c.req.raw))
   }
+  return c.redirect('/app.html')
 })
 
-app.get('/letters/new', (c) => c.html(renderFormPage({ initial: blankTemplate() })))
+app.get('/letters/new', (c) => c.redirect('/app.html'))
+
+app.get('/letters/:id/edit', (c) => {
+  const id = encodeURIComponent(c.req.param('id'))
+  return c.redirect(`/app.html?edit=${id}`)
+})
 
 app.get('/letters/:id', async (c) => {
   try {
@@ -277,25 +279,6 @@ app.get('/letters/:id', async (c) => {
   } catch {
     return c.html(renderNotFound(), 404)
   }
-})
-
-app.get('/letters/:id/edit', async (c) => {
-  try {
-    const letter = await getLetter(sqlFrom(c), c.req.param('id'))
-    if (!letter) return c.html(renderNotFound(), 404)
-    return c.html(renderFormPage({ letter }))
-  } catch {
-    return c.html(renderNotFound(), 404)
-  }
-})
-
-app.post('/letters/:id/delete', async (c) => {
-  try {
-    await deleteLetter(sqlFrom(c), c.req.param('id'))
-  } catch {
-    // still send the user back to the list
-  }
-  return c.redirect('/')
 })
 
 app.doc('/doc', {
